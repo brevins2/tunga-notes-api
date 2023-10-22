@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate
-from .serializers import UserLoginSerializer, UserSerializer, PasswordResetSerializer
+from .serializers import UserLoginSerializer, UserLogoutSerializer, UserSerializer, PasswordResetSerializer
 
 
 # registration endpoint
@@ -49,4 +49,8 @@ def password_reset(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def logout(request):
-    print('User request: '+ request)
+    serializer = UserLogoutSerializer(data=request.data)
+    if serializer.is_valid():
+        
+        return Response({'You are now very logged out.'})
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -15,3 +15,6 @@ class UserLoginSerializer(serializers.Serializer):
 
 class PasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
+
+class UserLogoutSerializer(serializers.Serializer):
+    email = serializers.EmailField()
