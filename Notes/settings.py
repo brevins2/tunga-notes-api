@@ -39,8 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'notes',
-    'users',
-    
+    'users',    
 ]
 
 MIDDLEWARE = [
@@ -83,6 +82,20 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'tunganotes_db',  # Replace with your preferred database name
+#         'USER': 'db_user',       # Replace with your MySQL username
+#         'PASSWORD': 'db_password',  # Replace with your MySQL password
+#         'HOST': 'localhost',     # Replace with your MySQL host (usually 'localhost' for local development)
+#         'PORT': '3306',          # Replace with the MySQL port (usually 3306)
+#         'OPTIONS': {
+#             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"  
+#         }
+#     }
+# }
 
 
 # Password validation
@@ -135,13 +148,14 @@ REST_FRAMEWORK = {
     ]
 }
 
-LOGIN_REDIRECT_URL = "/"
+LOGIN_REDIRECT_URL = "/login"
 
-# AUTH_USER_MODEL = 'accounts.CustomUser'
+# AUTH_USER_MODEL = 'users.CustomUser'
+# AUTH_USER_MODEL = 'notes.CustomUser'
 
-# REST_FRAMEWORK = {
-    # 'DEFAULT_AUTHENTICATION_CLASSES': [
-        # 'rest_framework.authentication.TokenAuthentication',
-    # ],
-    # Other settings...
-# }
+MAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'kiggundubrevin@gmail.com'  # Your Gmail email address
+EMAIL_HOST_PASSWORD = '075brevin@u'  # Your Gmail app password or account password

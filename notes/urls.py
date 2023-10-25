@@ -6,5 +6,6 @@ urlpatterns = [
     path('<int:pk>/', views.getSingleNotes),
     path('add/', views.createNotes),
     path('delete/<int:notes_id>', views.deleteSingleNotes),
-    path('update/<int:notes_id>/', views.updateSingleNotes, name='update-single-notes')
+    path('update/<int:notes_id>/', views.updateSingleNotes, name='update-single-notes'),
+    path('download/csv/', views.download_csv, name='download_csv'),
 ]

@@ -1,3 +1,7 @@
+import csv
+# from tkinter import Canvas
+# from reportlab.pdfgen import canvas
+# from reportlab.lib.pagesizes import letter
 from django.shortcuts import render
 from django.http import HttpResponse
 from .models import Notes
@@ -77,3 +81,35 @@ def deleteSingleNotes(request, notes_id):
         return Response(response_data, status = status.HTTP_200_OK)
     except Notes.DoesNotExist:
         return HttpResponse('Notes not found', status=404)
+
+
+# download via csv
+def download_csv(request):
+    # Get the data you want to include in the CSV
+    data = Notes.objects.all()
+
+    # Create a response with CSV content
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="notes.csv"'
+
+    # Create a CSV writer and write the data
+    writer = csv.writer(response)
+    writer.writerow(['Title', 'Content', 'Owner'])  # Add appropriate column names
+    for note in data:
+        writer.writerow([note.title, note.content, note.owner.username])  # Example: Add note details
+
+    return response
+
+
+# download via pdf
+def download_pdf(request):
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="notes.pdf"'
+
+    # Create the PDF
+    p = Canvas.Canvas(response, pagesize=letter)
+    p.drawString(100, 750, "This is a PDF document.")
+
+    p.showPage()
+    p.save()
+    return response

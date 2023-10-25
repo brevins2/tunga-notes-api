@@ -7,7 +7,7 @@ from .serializers import UserLoginSerializer, UserSerializer, PasswordResetSeria
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
-
+from .email_utils import send_password_reset_email
 
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -27,7 +27,7 @@ def user_register(request):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            Token.objects.get_or_create(user=user)
+            Token.objects.create(user=user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -48,17 +48,6 @@ def user_login(request):
         return Response({'message': 'Login failed, invalid credentails. Please try again!'}, status=status.HTTP_401_UNAUTHORIZED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-# password reset endpoint
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
-# def password_reset(request):
-#     serializer = PasswordResetSerializer(data=request.data)
-#     if serializer.is_valid():
-#         Implement email reset logic here, send a reset link
-#         return Response({'message': 'Password reset link sent'})
-#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def password_reset(request):
@@ -72,23 +61,18 @@ def password_reset(request):
         except User.DoesNotExist:
             return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
             
-        # Generate a password reset token
-        # token = default_token_generator.make_token(user)
-            
-        # Create a password reset link and send it via email
-        # current_site = get_current_site(request)
-        # mail_subject = 'Password Reset'
-        # message = render_to_string('reset_password_email.html', {
-        #     'user': user,
-        #     'domain': current_site.domain,
-        #     'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-        #     'token': token,
-        # })
-        # email = EmailMessage(mail_subject, message, to=[email])
-        # email.send()
-            
-        # return Response({'message': 'Password reset link sent'})
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def send_password_reset_link(request):
+    if request.method == 'POST':
+        # Validate the email and generate a reset link
+        email = request.data.get('email')  # Assuming the email is provided in the request data
+        reset_link = generate_reset_link(email)  # Implement a function to generate the reset link
+
+        # Send the email
+        send_password_reset_email(email, reset_link)
+        return Response({'message': 'Password reset email sent successfully'})
 
 # user logout endpoint
 @api_view(['POST'])
@@ -100,3 +84,4 @@ def logout(request):
     token.delete()
     
     return Response({'message': 'You are now logged out.'})
+
