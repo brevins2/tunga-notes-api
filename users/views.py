@@ -9,14 +9,10 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from .email_utils import send_password_reset_email
 
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes
-from django.contrib.sites.shortcuts import get_current_site
-from django.urls import reverse
-from django.template.loader import render_to_string
-from django.core.mail import EmailMessage
-from django.contrib.auth.tokens import default_token_generator
+# email settings
+from django.conf import settings
+from django.core.mail import send_mail
+
 
 
 # registration endpoint
@@ -28,6 +24,13 @@ def user_register(request):
         if serializer.is_valid():
             user = serializer.save()
             Token.objects.create(user=user)
+
+            subject = 'welcome to GFG world'
+            message = f'Hi {user.firstname}, thank you for registering in geeksforgeeks.'
+            email_from = settings.EMAIL_HOST_USER
+            recipient_list = [user.email, ]
+            send_mail( subject, message, email_from, recipient_list )
+# html_message
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

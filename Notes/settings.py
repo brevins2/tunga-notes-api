@@ -31,13 +31,13 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'rest_framework',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
     'notes',
     'users',    
 ]
@@ -159,4 +159,4 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'kiggundubrevin@gmail.com'  # Your Gmail email address
-EMAIL_HOST_PASSWORD = '075brevin@u'  # Your Gmail app password or account password
+EMAIL_HOST_PASSWORD = 'wmtw mhpi jgsu eicd '

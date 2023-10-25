@@ -1,7 +1,7 @@
 import csv
-# from tkinter import Canvas
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
 # from reportlab.pdfgen import canvas
-# from reportlab.lib.pagesizes import letter
 from .permission import CustomAuthBackend
 from django.shortcuts import render
 from django.http import HttpResponse
@@ -87,7 +87,6 @@ def deleteSingleNotes(request, notes_id):
     try:
         notes = Notes.objects.get(id=notes_id)
         notes.delete()
-        # return HttpResponse('Notes deleted', status=204)
         response_data = { "response": "Notes deleted" }
         return Response(response_data, status = status.HTTP_200_OK)
     except Notes.DoesNotExist:
@@ -105,22 +104,44 @@ def download_csv(request):
 
     # Create a CSV writer and write the data
     writer = csv.writer(response)
-    writer.writerow(['Title', 'Content', 'Owner'])  # Add appropriate column names
+    writer.writerow(['ID', 'Title', 'Owner'])
     for note in data:
-        writer.writerow([note.title, note.content, note.owner.username])  # Example: Add note details
+        writer.writerow([note.title, note.content, note.user])
 
     return response
 
 
-# download via pdf
-def download_pdf(request):
+# export pdf file
+def export_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="notes.pdf"'
 
-    # Create the PDF
-    p = Canvas.Canvas(response, pagesize=letter)
-    p.drawString(100, 750, "This is a PDF document.")
+    # Creates the PDF object, using the response object as its "file."
+    p = canvas.Canvas(response)
 
+    # Defines the width and height of each row in the table
+    row_height = 20
+    column_width = 100
+
+    # Defines the data to be printed in the table
+    data = [
+        ['ID', 'Title', 'Owner'],
+    ]
+    for obj in Notes.objects.all():
+        data.append([obj.id, obj.title, obj.user])
+
+    # Draw the table
+    x = 50
+    y = 750
+    for row in data:
+        for item in row:
+            p.drawString(x, y, str(item))
+            x += column_width
+        x = 50
+        y -= row_height
+
+    # Close the PDF object cleanly, and we're done.
     p.showPage()
     p.save()
+
     return response
