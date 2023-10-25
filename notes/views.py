@@ -2,10 +2,13 @@ import csv
 # from tkinter import Canvas
 # from reportlab.pdfgen import canvas
 # from reportlab.lib.pagesizes import letter
+from .permission import CustomAuthBackend
 from django.shortcuts import render
 from django.http import HttpResponse
 from .models import Notes
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from .permission import IsOwnerOrReadOnly
 from .serializers import notesSerializers
 from rest_framework import status
 from rest_framework.response import Response
@@ -13,6 +16,7 @@ from rest_framework.response import Response
 
 # read notes from the table
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def getAllNotes(request):
     notes = Notes.objects.all()
     serializer = notesSerializers(notes, many=True)
@@ -21,6 +25,7 @@ def getAllNotes(request):
 
 # Read one single notes 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def getSingleNotes(request, pk=None):
     try:
         instance = Notes.objects.get(pk=pk)
@@ -33,9 +38,9 @@ def getSingleNotes(request, pk=None):
 
 # add notes to table
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def createNotes(request):
     serializer = notesSerializers(data=request.data)
-
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -44,10 +49,12 @@ def createNotes(request):
 
 # updata a notes in the table
 @api_view(['PUT'])
+@permission_classes([AllowAny])
 def updateSingleNotes(request, notes_id):
     user = request.data.get('user')
     content = request.data.get('content')
     due_date = request.data.get('due_date')
+    category = request.data.get('category')
     priority = request.data.get('priority')
     created_time = request.data.get('created_time')
     is_finished = request.data.get('is_finished')
@@ -59,12 +66,15 @@ def updateSingleNotes(request, notes_id):
         return Response(response_data, status = status.HTTP_404_NOT_FOUND)
 
     notes.title = title
-    notes.user_id = user
+    notes.user = user
     notes.content = content
     notes.due_date = due_date
     notes.priority = priority
     notes.created_time = created_time
     notes.is_finished = is_finished
+    notes.category = category
+    permission_classes = [IsOwnerOrReadOnly]
+    # if user == CustomAuthBackend):
     notes.save()
     response_data = { "response": "Item updated" }
     return Response(response_data, status = status.HTTP_200_OK)
@@ -72,6 +82,7 @@ def updateSingleNotes(request, notes_id):
 
 # delete single notes from the table
 @api_view(['DELETE'])
+@permission_classes([IsOwnerOrReadOnly])
 def deleteSingleNotes(request, notes_id):
     try:
         notes = Notes.objects.get(id=notes_id)

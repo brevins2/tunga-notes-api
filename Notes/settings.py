@@ -152,6 +152,7 @@ LOGIN_REDIRECT_URL = "/login"
 
 # AUTH_USER_MODEL = 'users.CustomUser'
 # AUTH_USER_MODEL = 'notes.CustomUser'
+AUTHENTICATION_BACKENDS = ['notes.permission.CustomAuthBackend']
 
 MAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
