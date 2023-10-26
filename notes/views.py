@@ -1,7 +1,6 @@
 import csv
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
-# from reportlab.pdfgen import canvas
 from .permission import CustomAuthBackend
 from django.shortcuts import render
 from django.http import HttpResponse
@@ -81,16 +80,39 @@ def updateSingleNotes(request, notes_id):
 
 
 # delete single notes from the table
-@api_view(['DELETE'])
-@permission_classes([IsOwnerOrReadOnly])
+@api_view(['GET'])
+# @permission_classes([IsOwnerOrReadOnly])
 def deleteSingleNotes(request, notes_id):
-    try:
-        notes = Notes.objects.get(id=notes_id)
-        notes.delete()
-        response_data = { "response": "Notes deleted" }
-        return Response(response_data, status = status.HTTP_200_OK)
-    except Notes.DoesNotExist:
-        return HttpResponse('Notes not found', status=404)
+    user = Notes.objects.filter(author =request.data['user'])
+    print(user)
+    # try:
+    #     notes = Notes.objects.get(id=notes_id)
+    #     notes.delete()
+    #     response_data = { "response": "Notes deleted" }
+    #     return Response(response_data, status = status.HTTP_200_OK)
+    # except Notes.DoesNotExist:
+    #     return HttpResponse('Notes not found', status=404)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def unfinnishedNotes(request):
+    print(request.data['category'])
+    # notes = Notes.objects.get(category=request.data['category'])
+    # serialize = notesSerializers(notes, many=True)
+    # return Response(serialize.data, status.Http_200_OK)
+
+
+# read notes from the table
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def getReversNotes(request):
+    if request.is_valid():
+        notes = Notes.objects.all().reverse(id)
+        serializer = notesSerializers(notes, many=True)
+        return Response(serializer.data)
+    else:
+        return Response('reverse notes error occured')
 
 
 # download via csv

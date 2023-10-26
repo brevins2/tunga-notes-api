@@ -1,0 +1,36 @@
+# virtual enviroment installation
+python3 -m venv Notesenv
+
+# installation of django restframework
+pip install django djangorestframework
+
+# creation of projects and apps
+django-admin startproject Notes
+django-admin startapp users
+django-admin startapp notes
+
+
+# run the project
+source Notesenv/bin/activate
+python3 manage.py runserver
+
+
+# other important installations
+pip install mysqlclient
+pip install reportlab
+
+
+
+# recommendations for future references
+feature to allow contribution and commenting on the notes by
+non authors on the app.
+Posts on that users can pick and research about some notes like
+one user can post asking if somene can make some notes about some
+specific notes.
+A feature maybe that can allow authors to post video or audio or both 
+for users with respective disabilities or even users with bais on reading
+and prefer hearing or watching.
+A restictions on some specific notes as prefered by the user could as well be great
+for the app, which gives the authors a chance to determine when to release
+the notes and when to pull it down or even store it un viewed by specific people
+or by only the author.
