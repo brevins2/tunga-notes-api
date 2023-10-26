@@ -16,5 +16,5 @@ class Notes(models.Model):
     # is_finished = models.BooleanField(default=False)
 
     def __str__(self) -> str:
-        return self.Title
+        return self.title
 

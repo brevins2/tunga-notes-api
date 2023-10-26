@@ -79,40 +79,41 @@ def updateSingleNotes(request, notes_id):
     return Response(response_data, status = status.HTTP_200_OK)
 
 
-# delete single notes from the table
-@api_view(['GET'])
+# delete single notes from the table by author
+@api_view(['POST'])
 # @permission_classes([IsOwnerOrReadOnly])
 def deleteSingleNotes(request, notes_id):
-    user = Notes.objects.filter(author =request.data['user'])
-    print(user)
-    # try:
-    #     notes = Notes.objects.get(id=notes_id)
-    #     notes.delete()
-    #     response_data = { "response": "Notes deleted" }
-    #     return Response(response_data, status = status.HTTP_200_OK)
-    # except Notes.DoesNotExist:
-    #     return HttpResponse('Notes not found', status=404)
+    user = Notes.objects.filter(user_id = request.data['user_id'], id=request.data['id'])
+    notes_id = request.data['id']
+    
+    if user:
+        try:
+            notes = Notes.objects.get(id=notes_id)
+            notes.delete()
+            response_data = { "response": "Notes deleted" }
+            return Response(response_data, status = status.HTTP_200_OK)
+        except Notes.DoesNotExist:
+            return HttpResponse('Not able to delete Notes', status=404)
+    else:
+        return Response('Your are not the author of these notes')
 
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def unfinnishedNotes(request):
     print(request.data['category'])
-    # notes = Notes.objects.get(category=request.data['category'])
-    # serialize = notesSerializers(notes, many=True)
-    # return Response(serialize.data, status.Http_200_OK)
+    notes = Notes.objects.get(category=request.data['category'])
+    serialize = notesSerializers(notes, many=True)
+    return Response(serialize.data, status.Http_200_OK)
 
 
 # read notes from the table
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def getReversNotes(request):
-    if request.is_valid():
-        notes = Notes.objects.all().reverse(id)
-        serializer = notesSerializers(notes, many=True)
-        return Response(serializer.data)
-    else:
-        return Response('reverse notes error occured')
+    notes = Notes.objects.all().reverse()
+    serializer = notesSerializers(notes, many=True)
+    return Response(serializer.data)
 
 
 # download via csv
@@ -143,7 +144,7 @@ def export_pdf(request):
 
     # Defines the width and height of each row in the table
     row_height = 20
-    column_width = 100
+    column_width = 150
 
     # Defines the data to be printed in the table
     data = [
