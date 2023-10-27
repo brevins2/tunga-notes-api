@@ -37,3 +37,6 @@ A restictions on some specific notes as prefered by the user could as well be gr
 for the app, which gives the authors a chance to determine when to release
 the notes and when to pull it down or even store it un viewed by specific people
 or by only the author.
+
+
+# could not add mysqlclient because of my pc issues. some machine configurations hindered it's addidtions
