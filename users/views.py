@@ -53,6 +53,8 @@ def user_login(request):
     else:
         return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
+
+# password_reset
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def password_reset(request):

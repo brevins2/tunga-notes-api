@@ -147,6 +147,7 @@ def prioritysearch(request):
     else:
         return Response('priority doesnot exist')
 
+
 # read notes from the table
 @api_view(['GET'])
 @permission_classes([AllowAny])
