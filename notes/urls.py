@@ -9,6 +9,6 @@ urlpatterns = [
     path('delete/<int:notes_id>', views.deleteSingleNotes),
     path('update/<int:notes_id>/', views.updateSingleNotes, name='update-single-notes'),
     path('download/csv/', views.download_csv, name='download_csv'),
-    path('categorysearch/', views.unfinnishedNotes, name='unfinished_notes'),
+    path('categorysearch/', views.categorysearch, name='unfinished_notes'),
     path('reverseorder/', views.getReversNotes)
 ]

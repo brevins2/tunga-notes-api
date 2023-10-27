@@ -31,13 +31,13 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
-    'rest_framework',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
     'notes',
     'users',    
 ]
@@ -86,11 +86,11 @@ DATABASES = {
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'tunganotes_db',  # Replace with your preferred database name
-#         'USER': 'db_user',       # Replace with your MySQL username
-#         'PASSWORD': 'db_password',  # Replace with your MySQL password
-#         'HOST': 'localhost',     # Replace with your MySQL host (usually 'localhost' for local development)
-#         'PORT': '3306',          # Replace with the MySQL port (usually 3306)
+#         'NAME': 'tunganotes_db',
+#         'USER': 'root',
+#         'PASSWORD': '',
+#         'HOST': 'localhost',
+#         'PORT': '3306',
 #         'OPTIONS': {
 #             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"  
 #         }
@@ -116,6 +116,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Celery configuration
+CELERY_BROKER_URL = 'redis://127.0.0.1:8000/0'  # Update with your broker URL
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:8000/0'  # Update with your broker URL
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
@@ -148,8 +151,6 @@ REST_FRAMEWORK = {
 
 LOGIN_REDIRECT_URL = "/login"
 
-# AUTH_USER_MODEL = 'users.CustomUser'
-# AUTH_USER_MODEL = 'notes.CustomUser'
 AUTHENTICATION_BACKENDS = ['notes.permission.CustomAuthBackend']
 
 MAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -158,3 +159,4 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'kiggundubrevin@gmail.com'  # Your Gmail email address
 EMAIL_HOST_PASSWORD = 'wmtw mhpi jgsu eicd '
+

@@ -1,13 +1,16 @@
 import csv
+from django.conf import settings
+from django.core.mail import EmailMessage
+
+from io import BytesIO
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
-from .permission import CustomAuthBackend
+from users.models import User
 from django.shortcuts import render
 from django.http import HttpResponse
 from .models import Notes
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from .permission import IsOwnerOrReadOnly
+from rest_framework.permissions import AllowAny
 from .serializers import notesSerializers
 from rest_framework import status
 from rest_framework.response import Response
@@ -19,7 +22,7 @@ from rest_framework.response import Response
 def getAllNotes(request):
     notes = Notes.objects.all()
     serializer = notesSerializers(notes, many=True)
-    return Response(serializer.data)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 # Read one single notes 
@@ -47,41 +50,53 @@ def createNotes(request):
 
 
 # updata a notes in the table
-@api_view(['PUT'])
-@permission_classes([AllowAny])
+@api_view(['POST'])
 def updateSingleNotes(request, notes_id):
-    user = request.data.get('user')
-    content = request.data.get('content')
-    due_date = request.data.get('due_date')
-    category = request.data.get('category')
-    priority = request.data.get('priority')
-    created_time = request.data.get('created_time')
-    is_finished = request.data.get('is_finished')
-    title = request.data.get('title')
-    notes = Notes.objects.filter(id=notes_id).first()
+    activeuser = Notes.objects.filter(user_id = request.data['user'], id=request.data['id'])
+    notes_id = request.data['id']
 
-    if notes is None:
-        response_data = { "response": "Notes does not exist" }
-        return Response(response_data, status = status.HTTP_404_NOT_FOUND)
+    if activeuser:
+        user = request.data.get('user')
+        content = request.data.get('content')
+        due_date = request.data.get('due_date')
+        category = request.data.get('category')
+        priority = request.data.get('priority')
+        created_time = request.data.get('created_time')
+        is_finished = request.data.get('is_finished')
+        title = request.data.get('title')
+        notes = Notes.objects.filter(id=notes_id).first()
 
-    notes.title = title
-    notes.user = user
-    notes.content = content
-    notes.due_date = due_date
-    notes.priority = priority
-    notes.created_time = created_time
-    notes.is_finished = is_finished
-    notes.category = category
-    permission_classes = [IsOwnerOrReadOnly]
-    # if user == CustomAuthBackend):
-    notes.save()
-    response_data = { "response": "Item updated" }
-    return Response(response_data, status = status.HTTP_200_OK)
+        # check the user given if exists in the user's table
+        try:
+            user_instance = User.objects.get(pk=user)
+        except User.DoesNotExist:
+            response_data = {"response": "User does not exist"}
+            return Response(response_data, status=status.HTTP_404_NOT_FOUND)
+
+        notes = Notes.objects.filter(id=notes_id).first()
+
+        if notes is None:
+            response_data = { "response": "Notes does not exist" }
+            return Response(response_data, status = status.HTTP_404_NOT_FOUND)
+
+        notes.title = title
+        notes.user = user_instance
+        notes.content = content
+        notes.due_date = due_date
+        notes.priority = priority
+        notes.created_time = created_time
+        notes.is_finished = is_finished
+        notes.category = category
+        
+        notes.save()
+        response_data = { "response": "Item updated" }
+        return Response(response_data, status = status.HTTP_200_OK)
+    else:
+        return Response("You are not the author, can't update these notes")
 
 
 # delete single notes from the table by author
 @api_view(['POST'])
-# @permission_classes([IsOwnerOrReadOnly])
 def deleteSingleNotes(request, notes_id):
     user = Notes.objects.filter(user_id = request.data['user_id'], id=request.data['id'])
     notes_id = request.data['id']
@@ -98,25 +113,51 @@ def deleteSingleNotes(request, notes_id):
         return Response('Your are not the author of these notes')
 
 
+# get category notes from the db
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def unfinnishedNotes(request):
-    print(request.data['category'])
-    notes = Notes.objects.get(category=request.data['category'])
-    serialize = notesSerializers(notes, many=True)
-    return Response(serialize.data, status.Http_200_OK)
+def categorysearch(request):
+    notes = Notes.objects.filter(category=request.data['category'])
+    if notes:
+        serialize = notesSerializers(notes, many=True)
+        return Response(serialize.data)
+    else:
+        return Response('category doesnot exist')
+    
+# get notes by due_date
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def categorysearch(request):
+    notes = Notes.objects.filter(due_date=request.data['due_date'])
+    if notes:
+        serialize = notesSerializers(notes, many=True)
+        return Response(serialize.data)
+    else:
+        return Response('due_date doesnot exist')
 
+
+# get notes by priority
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def categorysearch(request):
+    notes = Notes.objects.filter(priority=request.data['priority'])
+    if notes:
+        serialize = notesSerializers(notes, many=True)
+        return Response(serialize.data)
+    else:
+        return Response('priority doesnot exist')
 
 # read notes from the table
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def getReversNotes(request):
-    notes = Notes.objects.all().reverse()
+    notes = Notes.objects.order_by('-id')
     serializer = notesSerializers(notes, many=True)
-    return Response(serializer.data)
+    return Response({"message": "Notes in descending order", "data": serializer.data})
 
 
 # download via csv
+# @api_view(['POST'])
 def download_csv(request):
     # Get the data you want to include in the CSV
     data = Notes.objects.all()
@@ -127,7 +168,7 @@ def download_csv(request):
 
     # Create a CSV writer and write the data
     writer = csv.writer(response)
-    writer.writerow(['ID', 'Title', 'Owner'])
+    writer.writerow(['Title', 'Content', 'Owner'])
     for note in data:
         writer.writerow([note.title, note.content, note.user])
 
@@ -135,9 +176,11 @@ def download_csv(request):
 
 
 # export pdf file
+@api_view(['POST'])
 def export_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="notes.pdf"'
+    buffer = BytesIO()
 
     # Creates the PDF object, using the response object as its "file."
     p = canvas.Canvas(response)
@@ -167,4 +210,22 @@ def export_pdf(request):
     p.showPage()
     p.save()
 
-    return response
+    # Create an HttpResponse with the PDF
+    pdf_response = HttpResponse(content_type='application/pdf')
+    pdf_response['Content-Disposition'] = 'attachment; filename="notes.pdf"'
+    pdf_response.write(buffer.getvalue())
+    buffer.close()
+
+    activeuser = request.data['email']
+
+    # Send an email with the PDF attachment
+    subject = 'Your Notes PDF'
+    message = 'Please find your Notes PDF attached.'
+    from_email = settings.EMAIL_HOST_USER
+    to_email = activeuser
+
+    email = EmailMessage(subject, message, from_email, [to_email])
+    email.attach('notes.pdf', response.getvalue(), 'application/pdf')
+    email.send()
+
+    return Response(pdf_response)

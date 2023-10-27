@@ -9,6 +9,11 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from .email_utils import send_password_reset_email
 
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode
+# from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+# from django.utils.encoding import force_text
 
 # email settings
 from django.conf import settings
@@ -24,14 +29,13 @@ def user_register(request):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            # Token.objects.create(user=user)
 
             subject = 'welcome to GFG world'
             message = f'Hi {user.firstname}, thank you for registering in geeksforgeeks.'
             email_from = settings.EMAIL_HOST_USER
-            recipient_list = [user.email, ]
+            recipient_list = [user.email]
             send_mail( subject, message, email_from, recipient_list )
-# html_message
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -43,8 +47,9 @@ def user_login(request):
     
     if user:
         data = user.firstname + ' ' + user.lastname
+        token, created = Token.objects.get_or_create(user)
 
-        return Response(data, status=status.HTTP_200_OK)
+        return Response(data, {'token': token.key}, {'message': 'login successful'}, status=status.HTTP_200_OK)
     else:
         return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -63,19 +68,40 @@ def password_reset(request):
             
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+# generate and send Email to user
+def generate_reset_link(email):
+    user = User.objects.get(email=email)
+    token = default_token_generator.make_token(user)
+
+    uid = urlsafe_base64_encode(force_bytes(user.id))
+    token = urlsafe_base64_encode(force_bytes(token))
+    
+    # url to send
+    reset_link = f'https://http://127.0.0.1:8000/users/password_reset/{uid}/{token}/'
+    
+    return reset_link
+
 @api_view(['POST'])
 def send_password_reset_link(request):
     if request.method == 'POST':
-        email = request.data.get('email')  
-        reset_link = generate_reset_link(email) 
-        send_password_reset_email(email, reset_link)
-        return Response({'message': 'Password reset email sent successfully'})
+        email = request.data['email']
+        reset_link = generate_reset_link(email)
+
+        # Send the password reset email
+        subject = 'Password Reset'
+        message = f'You can reset your password by following this link: {reset_link}'
+        from_email = settings.EMAIL_HOST_USER
+        recipient_list = [email]
+
+        send = send_mail(subject, message, from_email, recipient_list)
+
+        return Response({'message': 'Password reset email sent successfully'}, send)
 
 # user logout endpoint
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def logout(request):
-    # Get the user's authentication token
     token, created = Token.objects.get_or_create(user=request.user)
     
     token.delete()
