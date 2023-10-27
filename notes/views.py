@@ -108,7 +108,7 @@ def deleteSingleNotes(request, notes_id):
             response_data = { "response": "Notes deleted" }
             return Response(response_data, status = status.HTTP_200_OK)
         except Notes.DoesNotExist:
-            return HttpResponse('Not able to delete Notes', status=404)
+            return HttpResponse('Not able to delete Notes, data doesnot exist', status=404)
     else:
         return Response('Your are not the author of these notes')
 
@@ -127,7 +127,7 @@ def categorysearch(request):
 # get notes by due_date
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def categorysearch(request):
+def duedate(request):
     notes = Notes.objects.filter(due_date=request.data['due_date'])
     if notes:
         serialize = notesSerializers(notes, many=True)
@@ -139,7 +139,7 @@ def categorysearch(request):
 # get notes by priority
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def categorysearch(request):
+def prioritysearch(request):
     notes = Notes.objects.filter(priority=request.data['priority'])
     if notes:
         serialize = notesSerializers(notes, many=True)
