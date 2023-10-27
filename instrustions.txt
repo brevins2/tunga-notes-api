@@ -16,11 +16,11 @@ python3 manage.py runserver
 
 
 # other important installations
-pip install mysqlclient
-pip install reportlab
-sudo apt install default-libmysqlclient-dev
-sudo apt install mariadb-client
-sudo apt install build-essential libssl-dev libffi-dev python3-dev
+# pip install mysqlclient
+# pip install reportlab
+# sudo apt install default-libmysqlclient-dev
+# sudo apt install mariadb-client
+# sudo apt install build-essential libssl-dev libffi-dev python3-dev
 
 
 
